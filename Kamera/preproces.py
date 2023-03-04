@@ -10,8 +10,11 @@ brown = [220,256,256]
 
 colors = None
 
-def load_webcam():
-    cap = cv2.VideoCapture(1)
+
+
+def load_webcam(cam):
+    # select camera based on name
+    cap = cv2.VideoCapture(cam)
     # crop camera to size 460x460
     cap.set(3, height)
     cap.set(4, width)
@@ -97,7 +100,7 @@ def pick_color(event, x, y, flags, param):
             print("brown: ", avarage_color(param, x, y))
 
 
-def number_of_figures(centers):
+def number_of_row(centers):
 # get centers that are in first row
     if len(centers) < 20:
         return []

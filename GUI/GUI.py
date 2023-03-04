@@ -1,148 +1,216 @@
-# pygame
-import numpy as np
-import pygame
-from bot.can_moove import *
-from bot.config import *
-from Kamera.preproces import *
+import customtkinter as tk
+from PIL import Image, ImageTk
 from Main_cam import *
-import cv2
+from Kamera.camera_setup import *
+from Kamera.preproces import *
+from bot.can_moove import *
 import time
+from bot.config import *
 
 
-def window(board):
+# tk.set_appearance_mode("dark")  # Modes: "System" (standard), "Dark", "Light"
+# tk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
-    pygame.init()
-    screen = pygame.display.set_mode((top, bottom))
-    pygame.display.set_caption("Pygame")
-    running = True
-    figure = "w"
-    moved = 0
-    jump = []
-    next = False
+class VideoPlayer(tk.CTkFrame):
+    def __init__(self, master=None, camera=0):
+        super().__init__(master)
+        self.master = master
+        self.video = cv2.VideoCapture(camera)
+        self.video.set(3, height)
+        self.video.set(4, width)
+        self.canvas = tk.CTkCanvas(self.master, width=self.video.get(cv2.CAP_PROP_FRAME_HEIGHT),
+                                height=self.video.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.canvas.grid(row=0, column=1, columnspan=2)
+        self.run = True
 
-    zero_board = np.zeros((8, 8), np.uint8)
+    def update_frame(self):
+        ret, frame = self.video.read()
+        if ret:
+            image = setup(frame)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            self.photo = ImageTk.PhotoImage(image=Image.fromarray(image))
+            self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
+        if self.run == True:
+            self.master.after(15, self.update_frame)
 
-    # camera setup
-    cap = load_webcam()
-    first = True
-    rows, black_rows = load_board(cap)
-    ggg = True
-    origional_board = board.copy()
-    start = True
-    while ggg:
-        show(cap)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            get_color(cap, rows)
-            ggg = False
-    while running:
+    def stop(self):
+        self.run = False
+        self.video.release()
+        self.canvas.destroy()
+
+class GUI(tk.CTk):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.camera = 0
+        self.title("Checkers")
+        self.geometry("900x900")
+        self.start_GUI()
+
+    def set_camera(self,cam):
+        self.camera = int(cam[-1])
+
+
+    def start_setup(self,root, button):
+        back = tk.CTkButton(root, text="Stop", command=lambda: self.stop_setup(root, video_player))
+        back.grid(row=0, column=0, pady=10, padx=10)
+
+        next = tk.CTkButton(root, text="Next", command=lambda: self.finde_board(root, video_player))
+        next.grid(row=0, column=3, pady=10, padx=10)
+
+        video_player = VideoPlayer(root, self.camera)
+        video_player.update_frame()
+        for i in button:
+            i.destroy()
+
+
+    def stop_setup(self,root, video_player):
+        video_player.stop()
+        root.destroy()
+        self.start_GUI()
+
+    def finde_board(self,root, video_player):
+        video_player.stop()
+        root.destroy()
+        self.setup_GUI()
+
+
+    def start_GUI(self):
+
+        frame_1 = tk.CTkFrame(self)
+        frame_1.grid(row=0, column=0, padx=60, pady=20, sticky="nsew")
+        cameras = all_cameras()
+        select_camera = tk.CTkOptionMenu(frame_1, values=cameras, command=self.set_camera)
+        select_camera.grid(row=1, column=0, pady=10, padx=50)
+        select_camera.set(cameras[0])
+        self.camera = 0
+        start = tk.CTkButton(frame_1, text="Start",
+                                           command=lambda: self.start_setup(frame_1, [start, select_camera]))
+        start.grid(row=2, column=0, pady=10, padx=10)
+
+    def show_bord(self, root, bord):
+        img = np.zeros((800, 800, 3), np.uint8)
+
+        for i in range(8):
+            for j in range(8):
+                if (i + j) % 2 == 0:
+                    cv2.rectangle(img, (i * 100, j * 100), (i * 100 + 100, j * 100 + 100), (255, 255, 255), -1)
+                else:
+                    cv2.rectangle(img, (i * 100, j * 100), (i * 100 + 100, j * 100 + 100), (0, 0, 0), -1)
+        imag = img.copy()
+        w = cv2.imread("../Img/W.png")
+        b = cv2.imread("../Img/B.png")
+        wq = cv2.imread('../Img/WQ.png')
+        bq = cv2.imread('../Img/BQ.png')
+        # set image size
+        w = cv2.resize(w, (80, 80))
+        b = cv2.resize(b, (80, 80))
+        wq = cv2.resize(wq, (80, 80))
+        bq = cv2.resize(bq, (80, 80))
+        # replace black pixels with white pixels
+        w[np.where((w == [0, 0, 0]).all(axis=2))] = [255, 255, 255]
+        b[np.where((b == [0, 0, 0]).all(axis=2))] = [255, 255, 255]
+        wq[np.where((wq == [0, 0, 0]).all(axis=2))] = [255, 255, 255]
+        bq[np.where((bq == [0, 0, 0]).all(axis=2))] = [255, 255, 255]
+
+        for i in range(8):
+            for j in range(8):
+                if bord[i][j] == 1:
+                    imag[i * 100 + 10:i * 100 + 80 + 10, j * 100 + 10:j * 100 + 80 + 10] = w
+                elif bord[i][j] == 2:
+                    imag[i * 100 + 10:i * 100 + 80 + 10, j * 100 + 10:j * 100 + 80 + 10] = b
+                elif bord[i][j] == 3:
+                    imag[i * 100 + 10:i * 100 + 80 + 10, j * 100 + 10:j * 100 + 80 + 10] = wq
+                elif bord[i][j] == 4:
+                    imag[i * 100 + 10:i * 100 + 80 + 10, j * 100 + 10:j * 100 + 80 + 10] = bq
+        image = cv2.cvtColor(imag, cv2.COLOR_BGR2RGB)
+        photo = ImageTk.PhotoImage(image=Image.fromarray(image))
+        tk.CTkLabel(root, image=photo, text="").grid(row=0, column=0, pady=10, padx=10)
+
+    def calibrate_GUI(self,root,cap):
+
+        bord = setup_bord
+
+        # add button
+        button_frame = tk.CTkFrame(root)
+        self.show_bord(button_frame, bord)
+        button_frame.grid(row=8, column=0, columnspan=8, pady=10)
+        back = tk.CTkButton(button_frame, text="Calibrate", command=lambda: self.set_colors(cap, root))
+        back.grid(row=0, column=0, pady=10, padx=10)
+
+    def set_colors(self,cap, root):
+        get_color(cap, self.rows)
+        root.destroy()
+        self.start_position(cap)
+
+
+
+
+    def setup_GUI(self):
+        frame_1 = tk.CTkFrame(self)
+        frame_1.grid(row=0, column=0, padx=60, pady=20, sticky="nsew")
+        cap = load_webcam(self.camera)
+        rows, black_rows = load_board(cap)
+        if rows == None:
+            self.destroy()
+        self.rows = rows
+        self.black_rows = black_rows
+        self.calibrate_GUI(frame_1, cap)
+
+
+    def start_position (self,cap):
+        frame_1 = tk.CTkFrame(self)
+        frame_1.grid(row=0, column=0, padx=60, pady=20, sticky="nsew")
+        bord_s = board_start
+        self.show_bord(frame_1, bord_s)
+        frame_1.update()
+        start = True
         while start:
-            board= get_board(cap, rows, black_rows)
-            if np.array_equal(origional_board, board):
+            board = get_board(cap, self.rows, self.black_rows)
+            if np.array_equal(bord_s, board):
                 start = False
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:
-                    figure = "b"
-                    print("white")
-            if event.type == pygame.QUIT:
-                running = False
-        screen.fill((0, 0, 0))
-        chessboard(screen)
-        # jump = move(screen,moved,next,jump)
-        checkers(screen,np.transpose(board))
-        pygame.display.flip()
-        if figure == "b":
-            board, next, moved = run(board, figure)
-            board_temp = get_board(cap, rows, black_rows)
-            while not np.array_equal(board_temp, board):
-                board_temp = get_board(cap, rows, black_rows)
-                screen.fill((0, 0, 0))
-                chessboard(screen)
-                checkers(screen, np.transpose(board))
-                pygame.display.flip()
-            print(board)
-            print(next)
-        else:
-            while True:
-                board_temp = get_board(cap, rows, black_rows)
-                print(board_temp)
-                if not np.array_equal(board_temp, zero_board):
-                    if not np.array_equal(board_temp, board):
-                        print(board)
-                        print(next)
-                        next = False
-                        # weit one second
-                        time.sleep(1)
-                        board = get_board(cap, rows, black_rows)
-
-                        break
-                screen.fill((0, 0, 0))
-                chessboard(screen)
-                checkers(screen, np.transpose(board))
-                pygame.display.flip()
+                self.play_GUI(cap)
 
 
-        if next == False:
+    def play_GUI(self,cap):
+        frame_1 = tk.CTkFrame(self)
+        frame_1.grid(row=0, column=0, padx=60, pady=20, sticky="nsew")
+        bord = board_start
+        self.show_bord(frame_1, bord)
+        frame_1.update()
+        figure = "w"
+        while True:
+
             if figure == "w":
-                figure = "b"
+                while True:
+                    board_temp = get_board(cap, self.rows, self.black_rows)
+                    if not np.array_equal(board_temp, empty_board):
+                        if not np.array_equal(board_temp, bord):
+                            print(bord)
+
+                            # weit one second
+                            time.sleep(1)
+                            bord = get_board(cap, self.rows,self.black_rows)
+                            figure = "b"
+                            break
+                self.show_bord(frame_1, bord)
+                frame_1.update()
             else:
-                figure = "w"
-
-    pygame.quit()
-
-top = 800
-bottom = 800
-
-
-# load img/queen.png image
-queenB = pygame.image.load("../Img/queenB.png")
-queenW = pygame.image.load("../Img/queenW.png")
-W = pygame.image.load("../Img/W.png")
-B = pygame.image.load("../Img/B.png")
-# set image size
-queenB = pygame.transform.scale(queenB, (50, 40))
-queenW = pygame.transform.scale(queenW, (50, 40))
-W = pygame.transform.scale(W, (80, 80))
-B = pygame.transform.scale(B, (80, 80))
-
-#drow move on board
-def move(screen,moved,next,jump):
-    if moved != 0:
-        jump.append(moved)
-        for i in range(len(jump)):
-            pygame.draw.circle(screen, (255, 0, 0), (int(jump[i][0]) * 100 + 50, int(jump[i][1]) * 100 + 50), 20)
-    if not next:
-        jump = []
-    return jump
+                bord, next, moved = run(bord,figure)
+                if bord == False:
+                    break
+                board_temp = get_board(cap, self.rows, self.black_rows)
+                print(bord)
+                self.show_bord(frame_1, bord)
+                frame_1.update()
+                if next:
+                    figure = "b"
+                else:
+                    figure = "w"
+                while not np.array_equal(board_temp, bord):
+                    board_temp = get_board(cap, self.rows, self.black_rows)
 
 
-
-
-
-def chessboard(screen):
-    for x in range(0, top, 100):
-        for y in range(0, bottom, 100):
-            if (x + y) % 200 == 0:
-                pygame.draw.rect(screen, (255, 255, 255), (x, y, 100, 100))
-            pygame.draw.rect(screen, (100, 100, 100), (x, y, 100, 100), 1)
-
-#drow checkers
-def checkers(screen,bord):
-    for x in range(0, top, 100):
-        for y in range(0, bottom, 100):
-            if bord[x//100][y//100] == 1:
-                # pygame.draw.circle(screen, (144, 84, 47), (x+50, y+50), 35)
-                screen.blit(W, (x+10, y+10))
-            elif bord[x//100][y//100] == 2:
-                # pygame.draw.circle(screen, (0, 0, 0), (x+50, y+50), 35)
-                screen.blit(B, (x+10, y+10))
-
-            elif bord[x//100][y//100] == 3:
-                pygame.draw.circle(screen, (144, 84, 47), (x+50, y+50), 35)
-                screen.blit(queenB, (x+25, y+30))
-
-            elif bord[x//100][y//100] == 4:
-                pygame.draw.circle(screen, (0, 0, 0), (x+50, y+50), 35)
-                screen.blit(queenW, (x+25, y+30))
-
-window(board_start)
+if __name__ == "__main__":
+    camera_runing = False
+    app = GUI()
+    app.mainloop()

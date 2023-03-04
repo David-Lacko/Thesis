@@ -4,8 +4,8 @@ import numpy as np
 from skimage import io, color
 
 def load_board(cap):
-    first = True
-    while(first):
+    run = True
+    while(run):
         white_squares = []
         black_squares = []
         ret, frame = cap.read()
@@ -13,19 +13,20 @@ def load_board(cap):
         crop = crop_image(rot)
         adjust = adjust_gamma(crop, 1.5)
         gray = rgb_to_gray(adjust)
-        # blur = gaussian_blur(gray)
-        if first:
-            corners = find_corners(gray)
-            centers = find_centers(corners)
-            for center in centers:
-                first = False
-                x, y = int(center[0]), int(center[1])
-                if (is_white(gray, x, y)):
-                    white_squares.append(center)
-                else:
-                    black_squares.append(center)
-            rows = number_of_figures(white_squares)
-            black_rows = number_of_figures(black_squares)
+        corners = find_corners(gray)
+        centers = find_centers(corners)
+        for center in centers:
+            run = False
+            x, y = int(center[0]), int(center[1])
+            if (is_white(gray, x, y)):
+                white_squares.append(center)
+            else:
+                black_squares.append(center)
+        try:
+            rows = number_of_row(white_squares)
+            black_rows = number_of_row(black_squares)
+        except:
+            return None, None
     return rows, black_rows
 
 def get_color(cap,rows):
