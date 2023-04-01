@@ -11,7 +11,7 @@ from functions import *
 
 
 def window(board):
-
+    board = [[0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 4, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 2], [0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 2, 0, 0], [0, 0, 0, 0, 0, 0, 2, 0], [0, 0, 0, 0, 0, 2, 0, 0]]
     pygame.init()
     screen = pygame.display.set_mode((top, bottom))
     pygame.display.set_caption("Pygame")
@@ -22,28 +22,9 @@ def window(board):
     next = False
     zero_board = np.zeros((8, 8), np.uint8)
 
-    # camera setup
-    cap = load_webcam()
-    first = True
-    rows, black_rows = load_board(cap)
-    ggg = True
-    origional_board = board.copy()
-    start = True
-    while ggg:
-        show(cap)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            get_color(cap, rows)
-            ggg = False
+
     while running:
-        while start:
-            board= get_board(cap, rows, black_rows)
-            if np.array_equal(origional_board, board):
-                start = False
         for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:
-                    figure = "b"
-                    print("white")
             if event.type == pygame.QUIT:
                 running = False
         screen.fill((0, 0, 0))
@@ -52,41 +33,16 @@ def window(board):
         checkers(screen,np.transpose(board))
         pygame.display.flip()
         if figure == "b":
-            board, next, moved = run(board, figure)
-            board_temp = get_board(cap, rows, black_rows)
-            while not np.array_equal(board_temp, board):
-                board_temp = get_board(cap, rows, black_rows)
-                screen.fill((0, 0, 0))
-                chessboard(screen)
-                checkers(screen, np.transpose(board))
-                pygame.display.flip()
-            print(board)
-            print(next)
+            board, moved = run(board, figure)
+            time.sleep(1)
         else:
-            while True:
-                board_temp = get_board(cap, rows, black_rows)
-                print(board_temp)
-                if not np.array_equal(board_temp, zero_board):
-                    if not np.array_equal(board_temp, board):
-                        print(board)
-                        print(next)
-                        next = False
-                        # weit one second
-                        time.sleep(1)
-                        board = get_board(cap, rows, black_rows)
+            board, moved = run(board, figure)
+            time.sleep(1)
 
-                        break
-                screen.fill((0, 0, 0))
-                chessboard(screen)
-                checkers(screen, np.transpose(board))
-                pygame.display.flip()
-
-
-        if next == False:
-            if figure == "w":
-                figure = "b"
-            else:
-                figure = "w"
+        if figure == "w":
+            figure = "b"
+        else:
+            figure = "w"
 
     pygame.quit()
 
@@ -144,5 +100,39 @@ def checkers(screen,bord):
             elif bord[x//100][y//100] == 4:
                 pygame.draw.circle(screen, (0, 0, 0), (x+50, y+50), 35)
                 screen.blit(queenW, (x+25, y+30))
+            elif bord[x//100][y//100] == 5:
+                pygame.draw.circle(screen, (255, 0, 0), (x+50, y+50), 10)
 
-window(board_start)
+# window(board_start)
+
+def move():
+    # bord = copy.deepcopy(test_board)
+    testboard = [[0, 0, 0, 0, 0, 0, 1, 0], [0, 1, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 4, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 1, 0], [0, 0, 0, 2, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 2, 0], [0, 2, 0, 2, 0, 2, 0, 2]]
+
+
+    bord = testboard
+    pygame.init()
+    screen = pygame.display.set_mode((top, bottom))
+    pygame.display.set_caption("Pygame")
+    running = True
+    figure = "b"
+    moves = need_move(bord, figure)
+    print(moves)
+    while running:
+        # select random move
+        bord = copy.deepcopy(testboard)
+        # run(bord, figure)
+        for move in moves:
+            x2 = int(move[2])
+            y2 = int(move[3])
+            bord[x2][y2] = 5
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        screen.fill((0, 0, 0))
+        chessboard(screen)
+        checkers(screen, np.transpose(bord))
+        pygame.display.flip()
+        time.sleep(2)
+
+move()

@@ -29,15 +29,17 @@ class NN:
         return model
 
     def move(self, board, figure):
-        print(board, figure)
-        moves = can_moove(board, figure)
+        moves = need_move(board, figure)
+        # if len(moves) == 0:
+        #     print('no moves')
+        #     moves = can_moove(board, figure)
         if len(moves) == 0:
-            return False, False, False
+            return False, False
         else:
-            action = self.choose_action(board,moves)
-            board, next = make_move(board, action)
+            move = self.choose_action(board,moves)
+            board = make_moves(board, move, moves)
             board = change_to_queen(board)
-            return board, next, action
+            return board, move
 
     def choose_action(self, board,moves):
         if np.random.uniform() < self.epsilon:
@@ -56,18 +58,17 @@ class NN:
     def get_best_action(self, board,moves):
         best_value = -1000
         for move in moves:
-            board_new = make_move(copy.deepcopy(board), move)[0]
-            print(board_new)
+            board_new = make_moves(copy.deepcopy(board), move,copy.deepcopy(moves))
+            # print(board_new)
             bord_flat = self.get_small(board_new)
             value = self.model.predict(bord_flat)
             if value > best_value:
                 best_value = value
                 best_move = move
-        print("best move", best_move)
         return best_move
 
     def get_small(self,board):
-        f = False
+        f = True
         for x in range(len(board)):
             if f:
                 board[x] = [x for i, x in enumerate(board[x]) if i % 2 == 0]
@@ -79,12 +80,35 @@ class NN:
         bord = bord.flatten()
         return bord.reshape((1, 32))
 
+    def learn(self, state, action, reward, next_state, done):
+        state_flat = self.get_small(copy.deepcopy(state))
+        next_state_flat = self.get_small(copy.deepcopy(next_state))
+        target = reward
+
+        if not done:
+            # compute the target value using the Q-learning update rule
+            #q_values = self.model.predict(next_state_flat)[0]
+            #next_action = self.get_best_action(next_state, need_move(next_state, 'w'))
+            next_q_value = self.model.predict(next_state_flat)[0]
+            target += self.gamma * next_q_value
+
+        # update the Q-value for the chosen action in the current state
+        target_q_values = self.model.predict(state_flat)
+        target_q_values[0] = target
+
+        # train the model using the current state and the updated target Q-values
+        self.model.fit(state_flat, target_q_values, epochs=1, verbose=0)
+
+        # update epsilon
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay
 
 
-    def learn(self,board,action):
-        board = make_move(board, action)
-        self.model.fit(board, 1, epochs=1, verbose=0)
-        return board
+    def save_model(self):
+        self.model.save("model.h5")
+
+    def load_model(self):
+        self.model = tf.keras.models.load_model("model.h5")
 
 
 

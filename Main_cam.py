@@ -105,13 +105,14 @@ def get_board(cap,rows,black_rows):
 
 def main():
     color = True
-    cap = load_webcam()
+    cap = load_webcam(1)
     rows, black_rows = load_board(cap)
     while(True):
         show(cap)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+    print(rows)
     get_color(cap, rows)
     while(True):
         bord = get_board(cap,rows,black_rows)

@@ -53,7 +53,7 @@ def find_corners(image):
 
 def find_centers(corners):
     lengh = 0
-    if len(corners) > 0:
+    if len(corners) > 1:
         lengh = int(abs(corners[0][0] - corners[1][0]))
     centers = []
     print("lengh: ", lengh)

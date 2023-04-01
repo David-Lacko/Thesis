@@ -43,7 +43,9 @@ class GUI(tk.CTk):
         super().__init__(*args, **kwargs)
         self.camera = 0
         self.title("Checkers")
-        self.geometry("900x900")
+        width = self.winfo_screenwidth()
+        height = self.winfo_screenheight()
+        self.geometry("%dx%d+0+0" % (width, height))
         self.start_GUI()
 
     def set_camera(self,cam):
@@ -86,6 +88,8 @@ class GUI(tk.CTk):
         start = tk.CTkButton(frame_1, text="Start",
                                            command=lambda: self.start_setup(frame_1, [start, select_camera]))
         start.grid(row=2, column=0, pady=10, padx=10)
+
+        frame_1.place(relx=0.5, rely=0.5, anchor="center")
 
     def show_bord(self, root, bord):
         img = np.zeros((800, 800, 3), np.uint8)
@@ -195,17 +199,13 @@ class GUI(tk.CTk):
                 self.show_bord(frame_1, bord)
                 frame_1.update()
             else:
-                bord, next, moved = run(bord,figure)
+                bord, moved = run(bord,figure)
                 if bord == False:
                     break
                 board_temp = get_board(cap, self.rows, self.black_rows)
                 print(bord)
                 self.show_bord(frame_1, bord)
                 frame_1.update()
-                if next:
-                    figure = "b"
-                else:
-                    figure = "w"
                 while not np.array_equal(board_temp, bord):
                     board_temp = get_board(cap, self.rows, self.black_rows)
 
