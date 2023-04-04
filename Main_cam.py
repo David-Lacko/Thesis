@@ -1,4 +1,4 @@
-from Kamera.preproces import *
+from Kamera.functions import *
 import cv2
 import numpy as np
 from skimage import io, color

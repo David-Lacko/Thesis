@@ -1,15 +1,10 @@
 import customtkinter as tk
 from PIL import Image, ImageTk
 from Main_cam import *
-from Kamera.camera_setup import *
-from Kamera.preproces import *
+from Kamera.functions import *
 from bot.can_moove import *
 import time
 from bot.config import *
-
-
-# tk.set_appearance_mode("dark")  # Modes: "System" (standard), "Dark", "Light"
-# tk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 class VideoPlayer(tk.CTkFrame):
     def __init__(self, master=None, camera=0):
@@ -26,7 +21,7 @@ class VideoPlayer(tk.CTkFrame):
     def update_frame(self):
         ret, frame = self.video.read()
         if ret:
-            image = setup(frame)
+            image = locate_bord(frame)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             self.photo = ImageTk.PhotoImage(image=Image.fromarray(image))
             self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
@@ -42,6 +37,8 @@ class GUI(tk.CTk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.camera = 0
+        self.play = True
+
         self.title("Checkers")
         width = self.winfo_screenwidth()
         height = self.winfo_screenheight()
@@ -128,7 +125,7 @@ class GUI(tk.CTk):
                     imag[i * 100 + 10:i * 100 + 80 + 10, j * 100 + 10:j * 100 + 80 + 10] = bq
         image = cv2.cvtColor(imag, cv2.COLOR_BGR2RGB)
         photo = ImageTk.PhotoImage(image=Image.fromarray(image))
-        tk.CTkLabel(root, image=photo, text="").grid(row=0, column=0, pady=10, padx=10)
+        tk.CTkLabel(root, image=photo, text="").grid(row=0, column=0,columnspan=9,rowspan=9)
 
     def calibrate_GUI(self,root,cap):
 
@@ -137,9 +134,9 @@ class GUI(tk.CTk):
         # add button
         button_frame = tk.CTkFrame(root)
         self.show_bord(button_frame, bord)
-        button_frame.grid(row=8, column=0, columnspan=8, pady=10)
+        button_frame.grid(row=0, column=0, pady=10)
         back = tk.CTkButton(button_frame, text="Calibrate", command=lambda: self.set_colors(cap, root))
-        back.grid(row=0, column=0, pady=10, padx=10)
+        back.grid(row=4, column=4)
 
     def set_colors(self,cap, root):
         get_color(cap, self.rows)
@@ -170,9 +167,16 @@ class GUI(tk.CTk):
         start = True
         while start:
             board = get_board(cap, self.rows, self.black_rows)
+            frame_1.update()
             if np.array_equal(bord_s, board):
                 start = False
-                self.play_GUI(cap)
+        frame_1.destroy()
+        self.play = True
+        self.play_GUI(cap)
+
+    def reset(self, cap):
+        self.play = False
+
 
 
     def play_GUI(self,cap):
@@ -181,33 +185,36 @@ class GUI(tk.CTk):
         bord = board_start
         self.show_bord(frame_1, bord)
         frame_1.update()
+        time.sleep(1)
         figure = "w"
-        while True:
-
+        back = tk.CTkButton(frame_1, text="Reset game", command=lambda: self.reset(cap))
+        back.grid(row=9, column=4, pady=10)
+        while self.play:
             if figure == "w":
-                while True:
-                    board_temp = get_board(cap, self.rows, self.black_rows)
-                    if not np.array_equal(board_temp, empty_board):
-                        if not np.array_equal(board_temp, bord):
-                            print(bord)
-
-                            # weit one second
+                board_temp = get_board(cap, self.rows, self.black_rows)
+                if not np.array_equal(board_temp, empty_board):
+                    if not np.array_equal(board_temp, bord):
+                        if posible_move(bord, "w", board_temp):
                             time.sleep(1)
                             bord = get_board(cap, self.rows,self.black_rows)
                             figure = "b"
-                            break
                 self.show_bord(frame_1, bord)
-                frame_1.update()
             else:
                 bord, moved = run(bord,figure)
-                if bord == False:
+                if bord is None:
                     break
                 board_temp = get_board(cap, self.rows, self.black_rows)
                 print(bord)
+                figure = "w"
                 self.show_bord(frame_1, bord)
-                frame_1.update()
                 while not np.array_equal(board_temp, bord):
+                    if self.play == False:
+                        break
                     board_temp = get_board(cap, self.rows, self.black_rows)
+                    frame_1.update()
+            frame_1.update()
+        frame_1.destroy()
+        self.start_position(cap)
 
 
 if __name__ == "__main__":

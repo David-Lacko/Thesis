@@ -57,59 +57,6 @@ def can_moove(board, figure):
                     moves.append(i)
     return moves
 
-def can_remuve_white(board, x, y, figure):
-    moves = []
-    if figure == "w" and board[x][y] == 1:
-        move = can_remuve_white(board, x, y)
-        if "left2" in move:
-            moves.append([x, y, x + 2, y - 2])
-            for mov in next_move(copy.deepcopy(board), [x, y, x + 2, y - 2]):
-                moves.append(mov)
-        if "right2" in move:
-            moves.append([x, y, x + 2, y + 2])
-            for mov in next_move(copy.deepcopy(board), [x, y, x + 2, y + 2]):
-                moves.append(mov)
-        if "left" in move:
-            moves.append([x, y, x + 1, y - 1])
-        if "right" in move:
-            moves.append([x, y, x + 1, y + 1])
-
-    elif figure == "b" and board[x][y] == 2:
-        move = can_remuve_black(board, x, y)
-        if "left2" in move:
-            moves.append([x, y, x - 2, y - 2])
-            for mov in next_move(copy.deepcopy(board), [x, y, x - 2, y - 2]):
-                moves.append(mov)
-        if "right2" in move:
-            moves.append([x, y, x - 2, y + 2])
-            for mov in next_move(copy.deepcopy(board), [x, y, x - 2, y + 2]):
-                moves.append(mov)
-        if "left" in move:
-            moves.append([x, y, x - 1, y - 1])
-        if "right" in move:
-            moves.append([x, y, x - 1, y + 1])
-
-    elif figure == "w" and board[x][y] == 3:
-        r_move = can_remuve_queen(board, x, y, [1, 3], [2, 4])
-        move = can_moove_queen(board, x, y)
-        for i in r_move:
-            moves.append(i)
-            for mov in next_move(copy.deepcopy(board), i):
-                moves.append(mov)
-        for i in move:
-            moves.append(i)
-    elif figure == "b" and board[x][y] == 4:
-        r_move = can_remuve_queen(board, x, y, [2, 4], [1, 3])
-        move = can_moove_queen(board, x, y)
-        for i in r_move:
-            moves.append(i)
-            for mov in next_move(copy.deepcopy(board), i):
-                moves.append(mov)
-        for i in move:
-            moves.append(i)
-    return moves
-
-
 def need_move(board, figure):
     moves = []
     for x in range(8):
@@ -312,38 +259,35 @@ def select_random_move(moves):
         return random.choice(moves)
     return 0
 
-def make_moves(bord, move, all_moves):
-    if bord[move[0]][move[1]] != 0:
-        return make_move(bord, move)
-    else:
-        print(move)
-        print(all_moves)
-        print(bord)
-        need_move = [move]
-        all_moves.remove(move)
-        moved = []
-        # finde end position
-        for moves in all_moves:
-            if move[0] == moves[2] and move[1] == moves[3] and move[2] == moves[0] and move[3] == moves[1]:
-                all_moves.remove(moves)
+# def make_moves(bord, move, all_moves):
+#     if bord[move[0]][move[1]] != 0:
+#         return make_move(bord, move)
+#     else:
+#         print(move)
+#         print(all_moves)
+#         print(bord)
+#         need_move = [move]
+#         all_moves.remove(move)
+#         moved = []
+#         # finde end position
+#         for moves in all_moves:
+#             if move[0] == moves[2] and move[1] == moves[3] and move[2] == moves[0] and move[3] == moves[1]:
+#                 all_moves.remove(moves)
+#
+#         while bord[move[0]][move[1]] == 0:
+#             for moves in all_moves:
+#                 if move[0] == moves[2] and move[1] == moves[3]:
+#                     need_move.append(moves)
+#                     all_moves.remove(moves)
+#                     moved.append([move[0], move[1]])
+#                     move = moves
+#         for move in reversed(need_move):
+#             bord = make_move(bord, move)
 
-        while bord[move[0]][move[1]] == 0:
-            for moves in all_moves:
-                if move[0] == moves[2] and move[1] == moves[3]:
-                    need_move.append(moves)
-                    all_moves.remove(moves)
-                    moved.append([move[0], move[1]])
-                    move = moves
-        for move in reversed(need_move):
-            bord = make_move(bord, move)
+        #
+        # return bord
 
-
-        return bord
-
-
-
-
-def make_move(board, move):
+def make_move_simple(board, move):
     x1 = int(move[0])
     y1 = int(move[1])
     x2 = int(move[2])
@@ -353,29 +297,49 @@ def make_move(board, move):
     board = remuve_skiped(board, x1, y1, x2, y2)
     return board
 
-def next_moves(bord,x,y):
+def make_move_complex(board, move):
+    x1 = int(move[0])
+    y1 = int(move[1])
+    x2 = int(move[-2])
+    y2 = int(move[-1])
+    board[x2][y2] = board[x1][y1]
+    board[x1][y1] = 0
+    moves = []
+    for i in range(0, len(move), 4):
+        moves.append(move[i:i + 4])
+    for m in moves:
+        board = remuve_skiped(board, m[0], m[1], m[2], m[3])
+    return board
+
+
+def make_move(board, move):
+    if len(move) == 4:
+        return make_move_simple(board, move)
+    else:
+        return make_move_complex(board, move)
+
+def next_moves(bord,x,y,old_move):
     moves = []
     if bord[x][y] == 1:
         move = can_remuve_white(bord,x,y)
         if "left2" in move:
-            moves.append([x, y, x + 2, y - 2])
+            moves.append(old_move + [x, y, x + 2, y - 2])
         if "right2" in move:
-            moves.append([x, y, x + 2, y + 2])
+            moves.append(old_move + [x, y, x + 2, y + 2])
     elif bord[x][y] == 2:
         move = can_remuve_black(bord,x,y)
         if "left2" in move:
-            moves.append([x, y, x - 2, y - 2])
+            moves.append(old_move + [x, y, x - 2, y - 2])
         if "right2" in move:
-            moves.append([x, y, x - 2, y + 2])
+            moves.append(old_move + [x, y, x - 2, y + 2])
     elif bord[x][y] == 3:
         move = can_remuve_queen(bord,x,y,[3,1],[2,4])
-
         for i in move:
-            moves.append([x, y, i[2], i[3]])
+            moves.append(old_move + [x, y, i[2], i[3]])
     elif bord[x][y] == 4:
         move = can_remuve_queen(bord,x,y,[2,4],[1,3])
         for i in move:
-            moves.append([x, y, i[2], i[3]])
+            moves.append(old_move + [x, y, i[2], i[3]])
     return moves
 
 
@@ -383,13 +347,13 @@ def next_move(bord,move):
     bord = make_move(bord,move)
     moves = []
     x2,y2 = move[2],move[3]
-    new_moves = next_moves(bord,x2,y2)
+    new_moves = next_moves(bord,x2,y2,move)
     while len(new_moves) > 0:
         for move in new_moves:
             moves.append(move)
-            bord = make_move(bord, move)
-            x2, y2 = move[2], move[3]
-            new_moves = next_moves(bord, x2, y2)
+            bord = make_move(bord, move[-4:])
+            x2, y2 = move[-2], move[-1]
+            new_moves = next_moves(bord, x2, y2, move)
     return moves
 
 
@@ -421,63 +385,27 @@ def change_to_queen(board):
 
 def run(board,figure):
     moves = need_move(board, figure)
-    # move = select_random_move(moves)
-    # if move != 0:
-    #     moves = can_moove(board, figure)
     move = select_random_move(moves)
     if move != 0:
-        board = make_moves(board, move, moves)
+        board = make_move(board, move)
     else:
         return False, False
     board = change_to_queen(board)
     return board, move
 
-def can_moove_figure(board,x,y, figure):
-    moves = []
-    if figure == "w" and board[x][y] == 1:
-        move = can_remuve_white(board, x, y)
-        if "left2" in move:
-            moves.append([x, y, x + 2, y - 2])
-            for mov in next_move(copy.deepcopy(board),[x, y, x + 2, y - 2]):
-                moves.append(mov)
-        if "right2" in move:
-            moves.append([x, y, x + 2, y + 2])
-            for mov in next_move(copy.deepcopy(board),[x, y, x + 2, y + 2]):
-                moves.append(mov)
-        if "left" in move:
-            moves.append([x, y, x + 1, y - 1])
-        if "right" in move:
-            moves.append([x, y, x + 1, y + 1])
-    elif figure == "b" and board[x][y] == 2:
-        move = can_remuve_black(board, x, y)
-        if "left2" in move:
-            moves.append([x, y, x - 2, y - 2])
-            for mov in next_move(copy.deepcopy(board),[x, y, x - 2, y - 2]):
-                moves.append(mov)
-        if "right2" in move:
-            moves.append([x, y, x - 2, y + 2])
-            for mov in next_move(copy.deepcopy(board),[x, y, x - 2, y + 2]):
-                moves.append(mov)
-        if "left" in move:
-            moves.append([x, y, x - 1, y - 1])
-        if "right" in move:
-            moves.append([x, y, x - 1, y + 1])
-    elif figure == "w" and board[x][y] == 3:
-        r_move = can_remuve_queen(board, x, y,[1,3],[2,4])
-        move = can_moove_queen(board, x, y)
-        for i in r_move:
-            moves.append(i)
-            for mov in next_move(copy.deepcopy(board),i):
-                moves.append(mov)
-        for i in move:
-            moves.append(i)
-    elif figure == "b" and board[x][y] == 4:
-        r_move = can_remuve_queen(board, x, y,[2,4],[1,3])
-        move = can_moove_queen(board, x, y)
-        for i in r_move:
-            moves.append(i)
-            for mov in next_move(copy.deepcopy(board),i):
-                moves.append(mov)
-        for i in move:
-            moves.append(i)
-    return moves
+def run_random(board,figure):
+    moves = can_moove(board, figure)
+    move = select_random_move(moves)
+    if move != 0:
+        board = make_move(board, move)
+    else:
+        return False, False
+    board = change_to_queen(board)
+    return board, move
+
+def posible_move(board,figure,new_board):
+    moves = can_moove(board, figure)
+    for move in moves:
+        if make_move(board,move) == new_board:
+            return True
+    return False

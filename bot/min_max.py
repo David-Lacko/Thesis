@@ -4,19 +4,25 @@ import numpy as np
 import copy
 from bot.config import *
 from bot.can_moove import *
-def min_max(board, player, depth):
+def min_max(board, player,figure, depth, move_mode = "deterministic"):
     if depth == 0:
         return eval_function(board, player), None
     elif can_moove(board, player) == []:
         return eval_function(board, player), None
-    if player == "b":
+    if player == figure:
         best_score = -100
-        moves = need_move(board, player)
+        if move_mode == "deterministic":
+            moves = need_move(board, player)
+        else:
+            moves = can_moove(board, player)
         # print(moves)
         for move in moves:
             temp_board = copy.deepcopy(board)
-            temp_board = make_moves(temp_board, move,moves)
-            score = min_max(temp_board, "w", depth - 1)[0]
+            temp_board = make_move(temp_board, move)
+            if figure == "b":
+                score = min_max(temp_board, "w", figure, depth - 1,move_mode)[0]
+            else:
+                score = min_max(temp_board, "b",figure, depth - 1,move_mode)[0]
             # print(score)
             if score > best_score:
                 best_score = score
@@ -24,11 +30,17 @@ def min_max(board, player, depth):
         return best_score, best_move
     else:
         best_score = 100
-        moves = need_move(board, player)
+        if move_mode == "deterministic":
+            moves = need_move(board, player)
+        else:
+            moves = can_moove(board, player)
         for move in moves:
             temp_board = copy.deepcopy(board)
-            temp_board = make_moves(temp_board, move,moves)
-            score = min_max(temp_board, "b", depth - 1)[0]
+            temp_board = make_move(temp_board, move)
+            if figure == "b":
+                score = min_max(temp_board, "b", figure, depth - 1,move_mode)[0]
+            else:
+                score = min_max(temp_board, "w", figure, depth - 1,move_mode)[0]
             # print(score)
             if score < best_score:
                 best_score = score
@@ -50,5 +62,4 @@ def eval_function(board, player):
     if player == "b":
         return count
     else:
-        # print(board)
         return -count

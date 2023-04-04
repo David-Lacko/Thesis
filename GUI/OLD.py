@@ -3,11 +3,10 @@ import numpy as np
 import pygame
 from bot.can_moove import *
 from bot.config import *
-from Kamera.preproces import *
+from Kamera.functions import *
 from Main_cam import *
 import cv2
 import time
-from functions import *
 
 
 def window(board):
@@ -51,13 +50,13 @@ bottom = 800
 
 
 # load img/queen.png image
-queenB = pygame.image.load("../Img/queenB.png")
-queenW = pygame.image.load("../Img/queenW.png")
+queenB = pygame.image.load("../Img/BQ.png")
+queenW = pygame.image.load("../Img/WQ.png")
 W = pygame.image.load("../Img/W.png")
 B = pygame.image.load("../Img/B.png")
 # set image size
-queenB = pygame.transform.scale(queenB, (50, 40))
-queenW = pygame.transform.scale(queenW, (50, 40))
+queenB = pygame.transform.scale(queenB, (80, 80))
+queenW = pygame.transform.scale(queenW, (80, 80))
 W = pygame.transform.scale(W, (80, 80))
 B = pygame.transform.scale(B, (80, 80))
 
@@ -87,18 +86,13 @@ def checkers(screen,bord):
     for x in range(0, top, 100):
         for y in range(0, bottom, 100):
             if bord[x//100][y//100] == 1:
-                # pygame.draw.circle(screen, (144, 84, 47), (x+50, y+50), 35)
                 screen.blit(W, (x+10, y+10))
             elif bord[x//100][y//100] == 2:
-                # pygame.draw.circle(screen, (0, 0, 0), (x+50, y+50), 35)
                 screen.blit(B, (x+10, y+10))
-
             elif bord[x//100][y//100] == 3:
-                pygame.draw.circle(screen, (144, 84, 47), (x+50, y+50), 35)
                 screen.blit(queenB, (x+25, y+30))
 
             elif bord[x//100][y//100] == 4:
-                pygame.draw.circle(screen, (0, 0, 0), (x+50, y+50), 35)
                 screen.blit(queenW, (x+25, y+30))
             elif bord[x//100][y//100] == 5:
                 pygame.draw.circle(screen, (255, 0, 0), (x+50, y+50), 10)
@@ -123,9 +117,10 @@ def move():
         bord = copy.deepcopy(testboard)
         # run(bord, figure)
         for move in moves:
-            x2 = int(move[2])
-            y2 = int(move[3])
-            bord[x2][y2] = 5
+            if len(move) > 4:
+                x2 = int(move[-2])
+                y2 = int(move[-1])
+                bord[x2][y2] = 5
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -135,4 +130,4 @@ def move():
         pygame.display.flip()
         time.sleep(2)
 
-move()
+# move()

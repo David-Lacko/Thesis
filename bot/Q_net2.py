@@ -30,14 +30,11 @@ class NN:
 
     def move(self, board, figure):
         moves = need_move(board, figure)
-        # if len(moves) == 0:
-        #     print('no moves')
-        #     moves = can_moove(board, figure)
         if len(moves) == 0:
             return False, False
         else:
             move = self.choose_action(board,moves)
-            board = make_moves(board, move, moves)
+            board = make_move(board, move)
             board = change_to_queen(board)
             return board, move
 
@@ -45,21 +42,16 @@ class NN:
         if np.random.uniform() < self.epsilon:
             # choose best action
             action = self.get_best_action(board,moves)
-            #random action
-            # action = random.choice(moves)
-            # self.learn(board, figure, action)
             return action
 
         else:
             action = random.choice(moves)
-            # self.learn(board, figure, action)
             return action
 
     def get_best_action(self, board,moves):
         best_value = -1000
         for move in moves:
-            board_new = make_moves(copy.deepcopy(board), move,copy.deepcopy(moves))
-            # print(board_new)
+            board_new = make_move(copy.deepcopy(board), move)
             bord_flat = self.get_small(board_new)
             value = self.model.predict(bord_flat)
             if value > best_value:
@@ -86,9 +78,6 @@ class NN:
         target = reward
 
         if not done:
-            # compute the target value using the Q-learning update rule
-            #q_values = self.model.predict(next_state_flat)[0]
-            #next_action = self.get_best_action(next_state, need_move(next_state, 'w'))
             next_q_value = self.model.predict(next_state_flat)[0]
             target += self.gamma * next_q_value
 
@@ -109,15 +98,6 @@ class NN:
 
     def load_model(self):
         self.model = tf.keras.models.load_model("model.h5")
-
-
-
-
-
-
-
-
-
 
 
 
