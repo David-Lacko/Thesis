@@ -4,29 +4,30 @@ import numpy as np
 import copy
 from bot.config import *
 from bot.can_moove import *
-def min_max(board, player,figure, depth, move_mode = "deterministic"):
+def min_max(board, player,maximizer, depth, move_mode = "deterministic"):
     if depth == 0:
         return eval_function(board, player), None
     elif can_moove(board, player) == []:
         return eval_function(board, player), None
-    if player == figure:
+    if maximizer:
         best_score = -100
         if move_mode == "deterministic":
             moves = need_move(board, player)
         else:
             moves = can_moove(board, player)
-        # print(moves)
         for move in moves:
             temp_board = copy.deepcopy(board)
             temp_board = make_move(temp_board, move)
-            if figure == "b":
-                score = min_max(temp_board, "w", figure, depth - 1,move_mode)[0]
+            if player == "b":
+                score = min_max(temp_board, "w", False, depth - 1,move_mode)[0]
             else:
-                score = min_max(temp_board, "b",figure, depth - 1,move_mode)[0]
-            # print(score)
+                score = min_max(temp_board, "b",False, depth - 1,move_mode)[0]
             if score > best_score:
                 best_score = score
                 best_move = move
+        if best_score == 0:
+            return 0,random.choice(moves)
+
         return best_score, best_move
     else:
         best_score = 100
@@ -37,29 +38,16 @@ def min_max(board, player,figure, depth, move_mode = "deterministic"):
         for move in moves:
             temp_board = copy.deepcopy(board)
             temp_board = make_move(temp_board, move)
-            if figure == "b":
-                score = min_max(temp_board, "b", figure, depth - 1,move_mode)[0]
+            if player == "b":
+                score = min_max(temp_board, "w", True, depth - 1,move_mode)[0]
             else:
-                score = min_max(temp_board, "w", figure, depth - 1,move_mode)[0]
+                score = min_max(temp_board, "b", True, depth - 1,move_mode)[0]
             # print(score)
             if score < best_score:
                 best_score = score
                 best_move = move
+        if best_score == 0:
+            return 0,random.choice(moves)
         return best_score, best_move
 
-def eval_function(board, player):
-    count = 0
-    for i in range(8):
-        for j in range(8):
-            if board[i][j] == 1:
-                count += 1
-            elif board[i][j] == 3:
-                count += 2
-            elif board[i][j] == 2:
-                count -= 1
-            elif board[i][j] == 4:
-                count -= 2
-    if player == "b":
-        return count
-    else:
-        return -count
+

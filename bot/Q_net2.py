@@ -73,6 +73,9 @@ class NN:
         return bord.reshape((1, 32))
 
     def learn(self, state, action, reward, next_state, done):
+        if next_state == False:
+            done = True
+            next_state = copy.deepcopy(state)
         state_flat = self.get_small(copy.deepcopy(state))
         next_state_flat = self.get_small(copy.deepcopy(next_state))
         target = reward

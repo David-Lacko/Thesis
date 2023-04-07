@@ -181,7 +181,7 @@ class GUI(tk.CTk):
 
     def play_GUI(self,cap):
         frame_1 = tk.CTkFrame(self)
-        frame_1.grid(row=0, column=0, padx=60, pady=20, sticky="nsew")
+        frame_1.grid(row=1, column=0, padx=60, pady=20, sticky="nsew")
         bord = board_start
         self.show_bord(frame_1, bord)
         frame_1.update()
@@ -190,18 +190,23 @@ class GUI(tk.CTk):
         back = tk.CTkButton(frame_1, text="Reset game", command=lambda: self.reset(cap))
         back.grid(row=9, column=4, pady=10)
         while self.play:
+            #add text
             if figure == "w":
+                text = tk.CTkLabel(self, text="White turn", font=("Helvetica", 30))
+                text.grid(row=0, column=0, pady=10)
                 board_temp = get_board(cap, self.rows, self.black_rows)
                 if not np.array_equal(board_temp, empty_board):
                     if not np.array_equal(board_temp, bord):
-                        if posible_move(bord, "w", board_temp):
+                        if posible_move(copy.deepcopy(bord), "w", board_temp):
                             time.sleep(1)
                             bord = get_board(cap, self.rows,self.black_rows)
                             figure = "b"
                 self.show_bord(frame_1, bord)
             else:
+                text = tk.CTkLabel(self, text="Black turn", font=("Helvetica", 30))
+                text.grid(row=0, column=0, pady=10)
                 bord, moved = run(bord,figure)
-                if bord is None:
+                if bord is False:
                     break
                 board_temp = get_board(cap, self.rows, self.black_rows)
                 print(bord)

@@ -36,6 +36,7 @@ def rgb_to_gray(image):
 def gaussian_blur(image):
     blur = cv2.GaussianBlur(image, (5, 5), 0)
     return blur
+
 def adjust_gamma(image, gamma=1.0):
     alpha = 1.5  # Contrast control (1.0-3.0)
     beta = 0  # Brightness control (0-100)

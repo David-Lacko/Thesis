@@ -6,6 +6,7 @@ from bot.config import *
 from Kamera.functions import *
 from Main_cam import *
 import cv2
+from bot.min_max import *
 import time
 
 
@@ -32,17 +33,31 @@ def window(board):
         checkers(screen,np.transpose(board))
         pygame.display.flip()
         if figure == "b":
-            board, moved = run(board, figure)
-            time.sleep(1)
-        else:
-            board, moved = run(board, figure)
-            time.sleep(1)
 
+            score, moved = min_max(copy.deepcopy(board), figure, True, 3, "deterministic")
+            if moved == None:
+                board = False
+            else:
+                board = make_move(board, moved)
+        else:
+            score, moved = min_max(copy.deepcopy(board), figure, True, 5, "deterministic")
+            if moved == None:
+                board = False
+            else:
+                board = make_move(board, moved)
+        if board == False:
+            # restart game
+            if figure == "w":
+                print("AI win")
+            else:
+                print("AI lose")
+            figure = "w"
+            running = False
         if figure == "w":
             figure = "b"
         else:
             figure = "w"
-
+        # time.sleep(1)
     pygame.quit()
 
 top = 800
@@ -50,10 +65,14 @@ bottom = 800
 
 
 # load img/queen.png image
-queenB = pygame.image.load("../Img/BQ.png")
-queenW = pygame.image.load("../Img/WQ.png")
-W = pygame.image.load("../Img/W.png")
-B = pygame.image.load("../Img/B.png")
+# queenB = pygame.image.load("../Img/BQ.png")
+# queenW = pygame.image.load("../Img/WQ.png")
+# W = pygame.image.load("../Img/W.png")
+# B = pygame.image.load("../Img/B.png")
+queenB = pygame.image.load("./Img/BQ.png")
+queenW = pygame.image.load("./Img/WQ.png")
+W = pygame.image.load("./Img/W.png")
+B = pygame.image.load("./Img/B.png")
 # set image size
 queenB = pygame.transform.scale(queenB, (80, 80))
 queenW = pygame.transform.scale(queenW, (80, 80))
@@ -96,8 +115,8 @@ def checkers(screen,bord):
                 screen.blit(queenW, (x+25, y+30))
             elif bord[x//100][y//100] == 5:
                 pygame.draw.circle(screen, (255, 0, 0), (x+50, y+50), 10)
-
-# window(board_start)
+if __name__ == '__main__':
+    window(board_start)
 
 def move():
     # bord = copy.deepcopy(test_board)
