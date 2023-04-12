@@ -438,25 +438,17 @@ def get_board_value(board):
         for j in range(8):
             if board[i][j] == 1:
                 w += 1
-                count += 1
+                count -= 1
             elif board[i][j] == 3:
                 w += 1
-                count += 2
+                count -= 2
             elif board[i][j] == 2:
                 b += 1
-                count -= 1
+                count += 1
             elif board[i][j] == 4:
                 b += 1
-                count -= 2
+                count += 2
 
-    # Heuristic 3: Add a bonus value for having a piece in the opponent's
-    # starting row
-    black_starting_row = board[0]
-    white_starting_row = board[7]
-    num_black_starting_row = np.count_nonzero(black_starting_row == 2)
-    num_white_starting_row = np.count_nonzero(white_starting_row == 1)
-    count += (num_white_starting_row - num_black_starting_row) * 0.1
-    # print(num_white_pieces, num_black_pieces, white_king_positions, black_king_positions, value)
     if w == 0:
         count = 100
     elif b == 0:

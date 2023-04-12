@@ -77,16 +77,20 @@ class NN:
         bord = bord.flatten()
         return bord.reshape((1, 32))
 
-    def learn(self, state, action, reward, next_state, done):
+    def learn(self, state, action, reward, next_state):
         state_flat = self.get_small(copy.deepcopy(state))
         next_state_flat = self.get_small(copy.deepcopy(next_state))
 
         # Get Q-values for current state and next state
         q_values = self.model.predict(state_flat)
         next_q_values = self.model.predict(next_state_flat)
-
+        q_values = q_values.reshape((64, 63))
+        index1 = action[0]*action[1]
+        index2 = action[2]*action[3]
         # Update Q-value for the chosen action in the current state
-        q_values[0][action] = reward + self.gamma * np.max(next_q_values)
+        q_values[action[0]][action[1]] = q_values[index1][index2] + self.learning_rate * (reward + self.gamma * (np.max(next_q_values) - q_values[index1][index2]))
+
+        q_values = q_values.reshape((1, 4032))
 
         # Train the model using the current state and updated Q-values
         self.model.fit(state_flat, q_values, epochs=1, verbose=0)
@@ -94,3 +98,10 @@ class NN:
         # Update epsilon
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
+
+    def save_model(self):
+        self.model.save("model.h5")
+
+    def load_model(self):
+        self.model = tf.keras.models.load_model("model.h5")
+
