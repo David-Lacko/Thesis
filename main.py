@@ -38,7 +38,7 @@ for gmaes in range(1000):
     while running:
         if figure == "b":
             # old_board = copy.deepcopy(board)
-            score, moved = min_max(copy.deepcopy(board), figure, True, 5, "deterministic")
+            score, moved = min_max(copy.deepcopy(board), figure, True, 5, "random")
             if moved == None:
                 board = False
             else:
