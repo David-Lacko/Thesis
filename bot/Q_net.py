@@ -12,7 +12,7 @@ import copy
 class NN:
     def __init__(self):
         self.action_size = 64 * 63
-        self.epsilon = 0.9
+        self.epsilon = 0
         self.learning_rate = 0.001
         self.gamma = 0.95
         self.epsilon_min = 0.01
@@ -88,7 +88,7 @@ class NN:
         index1 = action[0]*action[1]
         index2 = action[2]*action[3]
         # Update Q-value for the chosen action in the current state
-        q_values[action[0]][action[1]] = q_values[index1][index2] + self.learning_rate * (reward + self.gamma * (np.max(next_q_values) - q_values[index1][index2]))
+        q_values[index1][index2] = q_values[index1][index2] + self.learning_rate * (reward + self.gamma * (np.max(next_q_values) - q_values[index1][index2]))
 
         q_values = q_values.reshape((1, 4032))
 

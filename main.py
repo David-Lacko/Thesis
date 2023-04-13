@@ -3,9 +3,9 @@ import copy
 from bot.Q_learn import *
 from bot.min_max import *
 # from GUI.OLD import *
-# from bot.Q_net import *
-# from bot.Q_net2 import *
-# nn = NN()
+from bot.Q_net import *
+from bot.Q_net2 import *
+nn = NN()
 # qlearn = Q_Learn()
 win_B,win_W,tie,i,figure,running = 0,0,0,0,"w",True
 def update():
@@ -17,7 +17,7 @@ def update():
             win_B += 1
         else:
             win_W += 1
-        figure = "w"
+        figure = "b"
         running = False
     else:
         if figure == "w":
@@ -31,29 +31,26 @@ def update():
 
 # nn.load_model()
 # qlearn.load("qlearn1-50KD")
-for gmaes in range(1000):
+for gmaes in range(10):
     print(gmaes)
     running = True
     board = copy.deepcopy(board_start)
     while running:
         if figure == "b":
-            # old_board = copy.deepcopy(board)
-            score, moved = min_max(copy.deepcopy(board), figure, True, 5, "random")
-            if moved == None:
-                board = False
-            else:
-                board = make_move(board, moved)
+            old_board = copy.deepcopy(board)
+            board, moved = nn.move(board, figure)
+            if board != False:
+                nn.learn(old_board, get_board_value(board), copy.deepcopy(board))
         else:
-            # old_board = copy.deepcopy(board)
-            score, moved = min_max(copy.deepcopy(board), figure, True, 3, "deterministic")
-            if moved == None:
-                board = False
-            else:
-                board = make_move(board, moved)
+            old_board = copy.deepcopy(board)
+            board, moved = run(board, figure)
+            if board != False:
+                nn.learn(old_board, get_board_value(board), copy.deepcopy(board))
+
         update()
 
 # qlearn.save("qlearn1-50KD")
-# nn.save_model()
+nn.save_model()
 print("__________________________________________________")
 print("AI win: ", win_B/1000)
 print("AI lose: ", win_W/1000)
