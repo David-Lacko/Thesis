@@ -1,11 +1,11 @@
 import customtkinter as tk
 from PIL import Image, ImageTk
-from Main_cam import *
+from Kamera.Main_cam import *
 from Kamera.functions import *
-from bot.can_moove import *
+from game.can_moove import *
 import time
-from bot.config import *
-
+from game.config import *
+from bot.min_max import *
 class VideoPlayer(tk.CTkFrame):
     def __init__(self, master=None, camera=0):
         super().__init__(master)
@@ -161,7 +161,7 @@ class GUI(tk.CTk):
     def start_position (self,cap):
         frame_1 = tk.CTkFrame(self)
         frame_1.grid(row=0, column=0, padx=60, pady=20, sticky="nsew")
-        bord_s = board_start
+        bord_s = start_board
         self.show_bord(frame_1, bord_s)
         frame_1.update()
         start = True
@@ -182,7 +182,7 @@ class GUI(tk.CTk):
     def play_GUI(self,cap):
         frame_1 = tk.CTkFrame(self)
         frame_1.grid(row=1, column=0, padx=60, pady=20, sticky="nsew")
-        bord = board_start
+        bord = start_board
         self.show_bord(frame_1, bord)
         frame_1.update()
         time.sleep(1)
@@ -199,17 +199,21 @@ class GUI(tk.CTk):
                     if not np.array_equal(board_temp, bord):
                         if posible_move(copy.deepcopy(bord), "w", board_temp):
                             time.sleep(1)
-                            bord = get_board(cap, self.rows,self.black_rows)
+                            bord = board_temp
                             figure = "b"
                 self.show_bord(frame_1, bord)
             else:
                 text = tk.CTkLabel(self, text="Black turn", font=("Helvetica", 30))
                 text.grid(row=0, column=0, pady=10)
-                bord, moved = run(bord,figure)
+                score, moved = min_max(copy.deepcopy(bord), figure, True, 3, "deterministic")
+                if moved == None:
+                    bord = False
+                else:
+                    bord = make_move(bord, moved)
+                    bord = change_to_queen(bord)
                 if bord is False:
                     break
                 board_temp = get_board(cap, self.rows, self.black_rows)
-                print(bord)
                 figure = "w"
                 self.show_bord(frame_1, bord)
                 while not np.array_equal(board_temp, bord):

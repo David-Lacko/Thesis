@@ -14,9 +14,7 @@ colors = None
 
 
 def load_webcam(cam):
-    # select camera based on name
     cap = cv2.VideoCapture(cam)
-    # crop camera to size 460x460
     cap.set(3, height)
     cap.set(4, width)
 
@@ -59,7 +57,7 @@ def find_centers(corners):
         lengh = int(abs(corners[0][0] - corners[1][0]))
     centers = []
     print("lengh: ", lengh)
-    if lengh > 10:
+    if lengh > 30:
         for square in corners:
             for i in range(-int(lengh/2), int(lengh/2) +1, int(lengh/2)):
                 for j in range(-int(lengh/2), int(lengh/2)+1, int(lengh/2)):
@@ -96,10 +94,6 @@ def avarage_color(image, x, y):
             pixel_avarage += image[y + i, x + j]
     pixel_avarage = pixel_avarage / 36
     return pixel_avarage
-
-def pick_color(event, x, y, flags, param):
-    if event == cv2.EVENT_LBUTTONDOWN:
-            print("brown: ", avarage_color(param, x, y))
 
 
 def number_of_row(centers):

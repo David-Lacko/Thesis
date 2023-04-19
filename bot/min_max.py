@@ -1,14 +1,11 @@
 #min-max algorithm for game checkers
-
-import numpy as np
 import copy
-from bot.config import *
-from bot.can_moove import *
+from game.can_moove import *
 def min_max(board, player,maximizer, depth, move_mode = "deterministic"):
     if depth == 0:
-        return eval_function(board, player), None
+        return get_board_value(board), None
     elif can_moove(board, player) == []:
-        return eval_function(board, player), None
+        return get_board_value(board), None
     if maximizer:
         best_score = -100
         if move_mode == "deterministic":
@@ -19,6 +16,8 @@ def min_max(board, player,maximizer, depth, move_mode = "deterministic"):
         for move in moves:
             temp_board = copy.deepcopy(board)
             temp_board = make_move(temp_board, move)
+            temp_board = change_to_queen(temp_board)
+
             if player == "b":
                 score = min_max(temp_board, "w", False, depth - 1,move_mode)[0]
             else:
@@ -42,11 +41,11 @@ def min_max(board, player,maximizer, depth, move_mode = "deterministic"):
         for move in moves:
             temp_board = copy.deepcopy(board)
             temp_board = make_move(temp_board, move)
+            temp_board = change_to_queen(temp_board)
             if player == "b":
                 score = min_max(temp_board, "w", True, depth - 1,move_mode)[0]
             else:
                 score = min_max(temp_board, "b", True, depth - 1,move_mode)[0]
-            # print(score)
             if score < best_score:
                 best_score = score
                 best = [move]

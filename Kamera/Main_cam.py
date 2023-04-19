@@ -43,7 +43,6 @@ def get_color(cap,rows):
     x, y = int(r[0]), int(r[1])
     col.append(list(avarage_color(lab, x, y)))
     set_color(col)
-    print(col)
 
 def show(cap):
     ret, frame = cap.read()
@@ -69,7 +68,6 @@ def get_board(cap,rows,black_rows):
             x, y = int(center[0]), int(center[1])
             val = euclidean(lab, x, y)
             if (val != 1):
-                print(val)
                 load_data = False
     if load_data:
         bord = np.zeros((8, 8), np.uint8)
@@ -96,10 +94,8 @@ def get_board(cap,rows,black_rows):
                 col_n += 2
             row_n += 1
             col_n = 0
-        cv2.imshow('crop', crop)
         return bord
     else:
-        cv2.imshow('crop', crop)
         return np.zeros((8, 8), np.uint8)
 
 
@@ -112,7 +108,6 @@ def main():
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-    print(rows)
     get_color(cap, rows)
     while(True):
         bord = get_board(cap,rows,black_rows)

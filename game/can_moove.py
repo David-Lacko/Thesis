@@ -259,34 +259,6 @@ def select_random_move(moves):
         return random.choice(moves)
     return 0
 
-# def make_moves(bord, move, all_moves):
-#     if bord[move[0]][move[1]] != 0:
-#         return make_move(bord, move)
-#     else:
-#         print(move)
-#         print(all_moves)
-#         print(bord)
-#         need_move = [move]
-#         all_moves.remove(move)
-#         moved = []
-#         # finde end position
-#         for moves in all_moves:
-#             if move[0] == moves[2] and move[1] == moves[3] and move[2] == moves[0] and move[3] == moves[1]:
-#                 all_moves.remove(moves)
-#
-#         while bord[move[0]][move[1]] == 0:
-#             for moves in all_moves:
-#                 if move[0] == moves[2] and move[1] == moves[3]:
-#                     need_move.append(moves)
-#                     all_moves.remove(moves)
-#                     moved.append([move[0], move[1]])
-#                     move = moves
-#         for move in reversed(need_move):
-#             bord = make_move(bord, move)
-
-        #
-        # return bord
-
 def make_move_simple(board, move):
     x1 = int(move[0])
     y1 = int(move[1])
@@ -356,11 +328,6 @@ def next_move(bord,move):
             new_moves = next_moves(bord, x2, y2, move)
     return moves
 
-
-
-
-
-
 def remuve_skiped(board, x1, y1, x2, y2):
     # all positions between x1,y1 and x2,y2
     move = abs(x2 - x1)
@@ -406,28 +373,9 @@ def run_random(board,figure):
 def posible_move(board,figure,new_board):
     moves = can_moove(board, figure)
     for move in moves:
-        if np.array_equal(make_move(copy.deepcopy(board), move),new_board):
-            print(move)
-            print(new_board)
+        if np.array_equal(change_to_queen(make_move(copy.deepcopy(board), move)),new_board):
             return True
     return False
-
-def eval_function(board, player):
-    count = 0
-    for i in range(8):
-        for j in range(8):
-            if board[i][j] == 1:
-                count += 1
-            elif board[i][j] == 3:
-                count += 2
-            elif board[i][j] == 2:
-                count -= 1
-            elif board[i][j] == 4:
-                count -= 2
-    if player == "b":
-        return count
-    else:
-        return -count
 
 
 def get_board_value(board):

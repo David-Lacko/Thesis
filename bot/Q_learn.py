@@ -1,5 +1,4 @@
-import random
-from bot.can_moove import *
+from game.can_moove import *
 import json
 
 
@@ -19,7 +18,7 @@ class Q_Learn:
     def update_q_value(self, state, action, reward, next_state,next_player, end=False):
         state_tuple, action_tuple = self.convert(state, action)
         next_state_tuple,_ = self.convert(next_state, action)
-        next_actions = can_moove(next_state, next_player)
+        next_actions = need_move(next_state, next_player)
 
 
         current_q = self.get_q_value(state, action_tuple)
@@ -63,7 +62,7 @@ class Q_Learn:
             return random.choice(best_actions)
 
     def play_move(self, state,figure):
-        moves = can_moove(state, figure)
+        moves = need_move(state, figure)
         if len(moves) == 0:
             return False, False
         action = self.choose_action(state,figure,moves)
@@ -82,7 +81,7 @@ class Q_Learn:
 
 
 class Q_Learn2:
-    def __init__(self, alpha=0.5, gamma=0.9, exploration_rate=0.1):
+    def __init__(self, alpha=0.5, gamma=0.9, exploration_rate=0):
         self.alpha = alpha  # learning rate
         self.gamma = gamma  # discount factor
         self.exploration_rate = exploration_rate  # exploration rate
